@@ -6,17 +6,18 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from "firebase/firestore";
+import {FIRESTORE_API_KEY,FIRESTORE_AUTH_DOMAIN,FIRESTORE_PROJECT_ID,FIRESTORE_STORAGE_BUCKET,FIRESTORE_MESSAGING_SENDER_ID,FIRESTORE_APP_ID,FIRESTORE_MEASUREMENT_ID} from '@env';
 
 const App = () => {
   const Stack = createNativeStackNavigator();
   const firebaseConfig = {
-    apiKey: "AIzaSyDT_TPH49o3opmE86uS8JswIXPuybT7X98",
-    authDomain: "devaichatapp-9a090.firebaseapp.com",
-    projectId: "devaichatapp",
-    storageBucket: "devaichatapp.appspot.com",
-    messagingSenderId: "632161899693",
-    appId: "1:632161899693:web:4acbb9f870156b4e016224",
-    measurementId: "G-JFB5NDGVS5"
+    apiKey: process.env.FIRESTORE_API_KEY,
+    authDomain: process.env.FIRESTORE_AUTH_DOMAIN,
+    projectId: process.env.FIRESTORE_PROJECT_ID,
+    storageBucket: process.env.FIRESTORE_STORAGE_BUCKET,
+    messagingSenderId: process.env.FIRESTORE_MESSAGING_SENDER_ID,
+    appId: process.env.FIRESTORE_APP_ID,
+    measurementId: process.env.FIRESTORE_MEASUREMENT_ID
   };
   const app = initializeApp(firebaseConfig)
   const db = getFirestore(app)
