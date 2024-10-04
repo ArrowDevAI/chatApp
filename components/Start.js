@@ -1,49 +1,95 @@
-import React, { useState } from 'react';
-import { TouchableOpacity, ImageBackground, StyleSheet, View, Text, TextInput } from 'react-native';
+import { useEffect, useState } from 'react';
+import {
+  Alert,
+  TouchableOpacity,
+  ImageBackground,
+  StyleSheet,
+  View,
+  Text,
+  TextInput,
+  KeyboardAvoidingView,
+  TouchableWithoutFeedback,
+  Keyboard,
+  Platform,
+} from 'react-native';
 import backgroundImage from '../assets/background.png';
+import { getAuth, signInAnonymously } from 'firebase/auth';
 
-const Start = ({ navigation }) => {
+const Start = ({ route, navigation }) => {
   const [name, setName] = useState('');
   const [selectedColor, setSelectedColor] = useState('');
+  const colors = ['#E8EBD5', '#D1E8F9', '#FAEDC8', '#F5F5F5'];
 
-  const colors = ['#4D4D4D', '#B5B5B5', '#C9D8D5', '#D4D4D4'];
+  useEffect(() => {
+    navigation.setOptions({ title: "Home" });
+  }, []);
 
-  const ColorPicker = ({ setSelectedColor }) => {
-    return (
-      <View style={styles.colorContainer}>
-        {colors.map((color, index) => (
-          <TouchableOpacity
-            key={index}
-            style={[styles.colorCircle, { backgroundColor: color }]} // Removed marginBottom here
-            onPress={() => setSelectedColor(color)}
-          />
-        ))}
-      </View>
-    );
+  const ColorPicker = () => (
+    <View style={styles.colorContainer}>
+      {colors.map((color, index) => (
+        <TouchableOpacity
+          key={index}
+          style={[styles.colorCircle, { backgroundColor: color }]}
+          onPress={() => setSelectedColor(color)}
+        />
+      ))}
+    </View>
+  );
+  const auth = getAuth();
+  const signInUser = () => {
+    signInAnonymously(auth)
+      .then(result => {
+        if (result.user.uid)
+        navigation.navigate("Chat", { 
+      userID: result.user.uid, 
+      user: name,
+      backgroundColor: selectedColor
+    });
+        Alert.alert("Signed in Successfully!");
+      })
+      .catch((error) => {
+        Alert.alert("Unable to sign in, try again later.");
+      });
+      
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: selectedColor || 'white' }]}>
+    <View style={styles.container}>
       <View style={styles.innerContainer}>
         <ImageBackground source={backgroundImage} style={styles.image} resizeMode='cover'>
           <Text style={styles.bgd_text}>Chat App</Text>
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.textInput}
-              value={name}
-              onChangeText={setName}
-              placeholder='Your Name'
-              placeholderTextColor='white'
-            />
-            <Text style={styles.colorPickerLabel}>Choose Background Color:</Text>
-            <ColorPicker setSelectedColor={setSelectedColor} />
-            <TouchableOpacity
-              style={[styles.button, { backgroundColor: selectedColor || 'grey' }]}
-              onPress={() => navigation.navigate('Chat', { name: name, selectedColor: selectedColor })}
-            >
-              <Text style={styles.buttonText}>Start Chatting</Text>
-            </TouchableOpacity>
-          </View>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={styles.inputContainer}
+          >
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+              <View style={styles.inputWrapper}>
+                <TextInput
+                accessible = {true}
+                accessibilityHint='Input your name'
+                accessibilityLabel='This will be your chat username'
+                accessibilityRole='search'
+                  style={styles.textInput}
+                  value={name}
+                  onChangeText={setName}
+                  placeholder='Your Name'
+                  placeholderTextColor='white'
+                />
+                <Text style={styles.colorPickerLabel}>Choose Background Color:</Text>
+                <ColorPicker />
+                <TouchableOpacity
+                  accessible={true}
+                  accessibilityLabel='Start Chatting Button'
+                  accessibilityHint='Brings you to the chat page'
+                  accessibilityRole='button'
+                  style={[styles.button, { backgroundColor: selectedColor || 'grey' }]}
+                  onPress={signInUser}
+                >
+                  <Text style={styles.buttonText}>Go Chat</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableWithoutFeedback>
+          </KeyboardAvoidingView>
         </ImageBackground>
       </View>
     </View>
@@ -56,15 +102,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   innerContainer: {
-    flex: 0.95, // Take up 95% of the parent
-    margin: '2.5%', // Center it by giving equal margins on all sides
-    borderRadius: 10, // Optional: Add some corner radius for aesthetics
-    overflow: 'hidden', // To clip the inner image if necessary
+    flex: 0.95,
+    margin: '2.5%',
+    borderRadius: 10,
+    overflow: 'hidden',
   },
   image: {
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center', // Center content vertically and horizontally
+    alignItems: 'center',
   },
   bgd_text: {
     color: 'white',
@@ -75,35 +121,39 @@ const styles = StyleSheet.create({
     textShadowColor: '#4D4D4D',
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 5,
-    position: 'absolute', // Fixed position for the title
-    top: '3%', // Use percentage for positioning
+    position: 'absolute',
+    top: '3%',
     width: '100%',
   },
   inputContainer: {
     padding: 10,
-    paddingTop: 15, // Added 5px more padding from the top
-    backgroundColor: 'rgba(128, 128, 128, 0.5)', // 80% transparent grey
+    paddingTop: 15,
+    backgroundColor: 'rgba(128, 128, 128, 0.5)',
     alignSelf: 'center',
     width: '92%',
     position: 'absolute',
-    bottom: 30, // Position above the button
-    alignItems: 'center', // Center items within the input container
+    bottom: 30,
+    alignItems: 'center',
+  },
+  inputWrapper: {
+    width: '100%',
+    alignItems: 'center',
   },
   textInput: {
-    width: "88%",
+    width: '88%',
     padding: 15,
     borderWidth: 1,
-    marginBottom: 15, // Space between TextInput and ColorPicker
-    alignSelf: "center",
-    color: "white",
-    borderColor: "white",
+    marginBottom: 15,
+    alignSelf: 'center',
+    color: 'white',
+    borderColor: 'white',
   },
   button: {
     width: '88%',
     alignSelf: 'center',
-    marginTop: 20, // Space between ColorPicker and button
-    backgroundColor: "grey",
-    shadowColor: "#000",
+    marginTop: 20,
+    backgroundColor: 'grey',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
@@ -111,15 +161,16 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   buttonText: {
-    color: 'white',
+    color: '#4a4544',
     fontSize: 18,
-    alignSelf: "center",
+    alignSelf: 'center',
+    fontWeight:'bold'
   },
   colorContainer: {
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    width: '88%', 
+    width: '88%',
   },
   colorCircle: {
     width: 40,
@@ -127,14 +178,14 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 2,
     borderColor: 'white',
-    marginHorizontal: 5, // Add horizontal margin to space out buttons
+    marginHorizontal: 5,
   },
   colorPickerLabel: {
     color: '#D4D4D4',
     fontWeight: 'bold',
     marginTop: 20,
     textAlign: 'center',
-    marginBottom: 20, // Space below the color picker label
+    marginBottom: 20,
   },
 });
 
