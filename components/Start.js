@@ -35,6 +35,7 @@ const Start = ({ route, navigation }) => {
       ))}
     </View>
   );
+  
   const auth = getAuth();
   const signInUser = () => {
     signInAnonymously(auth)
@@ -79,7 +80,7 @@ const Start = ({ route, navigation }) => {
                 <ColorPicker />
                 <TouchableOpacity
                   accessible={true}
-                  accessibilityLabel='Start Chatting Button'
+                  accessibilityLabel='Go Chat Button'
                   accessibilityHint='Brings you to the chat page'
                   accessibilityRole='button'
                   style={[styles.button, { backgroundColor: selectedColor || 'grey' }]}
@@ -161,7 +162,7 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   buttonText: {
-    color: '#4a4544',
+    color: 'grey',
     fontSize: 18,
     alignSelf: 'center',
     fontWeight:'bold'
