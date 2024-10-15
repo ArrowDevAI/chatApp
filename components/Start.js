@@ -18,7 +18,7 @@ import { getAuth, signInAnonymously } from 'firebase/auth';
 const Start = ({ route, navigation }) => {
   const [name, setName] = useState('');
   const [selectedColor, setSelectedColor] = useState('');
-  const colors = ['#E8EBD5', '#D1E8F9', '#FAEDC8', '#F5F5F5'];
+  const colors = ['#A9A9A9', '#D3D3D3', '#557a5d', '#162d1b'];
 
   useEffect(() => {
     navigation.setOptions({ title: "Home" });
@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
   innerContainer: {
     flex: 0.95,
     margin: '2.5%',
-    borderRadius: 10,
+    borderRadius: 15,
     overflow: 'hidden',
   },
   image: {
@@ -162,10 +162,13 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   buttonText: {
-    color: 'grey',
+    color: 'white',
     fontSize: 18,
     alignSelf: 'center',
-    fontWeight:'bold'
+    fontWeight:'bold',
+    textShadowColor:'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: {width: 0, height: 0},
+    textShadowRadius: 15
   },
   colorContainer: {
     flexDirection: 'row',
