@@ -43,7 +43,7 @@ const Start = ({ route, navigation }) => {
         if (result.user.uid)
         navigation.navigate("Chat", { 
       userID: result.user.uid, 
-      user: name,
+      user: name ? name : "ChatApp User",
       backgroundColor: selectedColor
     });
         Alert.alert("Signed in Successfully!");
@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
     fontWeight:'bold',
     textShadowColor:'rgba(0, 0, 0, 0.75)',
     textShadowOffset: {width: 0, height: 0},
-    textShadowRadius: 15
+    textShadowRadius: 4
   },
   colorContainer: {
     flexDirection: 'row',

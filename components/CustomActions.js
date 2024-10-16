@@ -3,9 +3,8 @@ import {Alert, TouchableOpacity, StyleSheet, Text, View } from 'react-native';
 import { useActionSheet } from '@expo/react-native-action-sheet';
 import * as ImagePicker from 'expo-image-picker'; 
 import * as Location from 'expo-location';
-import { ref, uploadBytes } from 'firebase/storage';
 
-const CustomActions = ({ wrapperStyle, iconTextStyle, setLocation, setImage, storage, userID, onSendFunction}) => {
+const CustomActions = ({ wrapperStyle, iconTextStyle, setLocation, setImage}) => {
   
     const getLocation = async () => {
     let permissions = await Location.requestForegroundPermissionsAsync();
@@ -26,30 +25,14 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, setLocation, setImage, sto
 
   
   const pickImage = async () => {
-    const generateReference = (uri) => {
-      const timeStamp = (new Date()).getTime();
-      const imageName = uri.split("/")[uri.split("/").length - 1];
-      return `${userID}-${timeStamp}-${imageName}`;
-    }
+
     try {
       let permissions = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (permissions?.granted) {
         let imagePicked = await ImagePicker.launchImageLibraryAsync();
         if (!imagePicked.canceled) {
-          const imageURI = imagePicked.assets[0].uri;
-          const uniqueRefString = generateReference(imageURI);
-          const response = await fetch(imageURI);
-          const blob = await response.blob();
-          console.log("blob:", blob)
-          const newUploadRef = ref(storage, uniqueRefString);
-    
-            uploadBytes(newUploadRef, blob).then(async (snapshot) => {
-              console.log('file has been uploaded');
-              const imageURL = await getDownloadURL(snapshot.ref)
-              onSendFunction({ image: imageURL })
-              setImage(imageURI);
-              console.log("IMAGE URI", imageURI)
-            });
+          setImage(imagePicked);
+       
         }
       } else {
         Alert.alert("Permissions haven't been granted.");
@@ -130,6 +113,7 @@ const styles = StyleSheet.create({
         fontSize: 15,
         backgroundColor: 'transparent',
         textAlign: 'center',
+        marginTop: 1
       },
 });
 

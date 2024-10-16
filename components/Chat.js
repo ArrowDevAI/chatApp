@@ -5,16 +5,16 @@ import CustomActions from './CustomActions';
 import { collection, onSnapshot, addDoc, query, orderBy } from 'firebase/firestore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import MapView from 'react-native-maps';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 
 
 const Chat = ({ db, route, navigation, isConnected, storage }) => {
+  
   const { user, backgroundColor, userID } = route.params;
   const [messages, setMessages] = useState([]);
   const [location, setLocation] = useState(null);
   const [image, setImage] = useState(null);
-  console.log("image:", image)
-
 
   const cacheMessages = async (messagesToCache) => {
     try {
@@ -72,7 +72,8 @@ const Chat = ({ db, route, navigation, isConnected, storage }) => {
     };
   }, [isConnected]);
 
-  const onSendFunction = (messagesToSend, image) => {
+  const onSendFunction = async (messagesToSend, storage) => {
+    console.log("Storage", storage)
     const messageToSend = {
       ...messagesToSend[0],
       createdAt: new Date(),
@@ -86,8 +87,37 @@ const Chat = ({ db, route, navigation, isConnected, storage }) => {
     }
 
     if (image) {
-      messageToSend.image = image.uri;
 
+      console.log("IMAGE IN ONSEND", image)
+
+      const generateReference = (uri) => {
+        const timeStamp = (new Date()).getTime();
+        const imageName = uri.split("/")[uri.split("/").length - 1];
+        return `${userID}-${timeStamp}-${imageName}`;
+      }
+     
+    try {
+      const imageURI = image.assets[0].uri
+      console.log("IMG URI",imageURI)
+      const uniqueRefString = generateReference(imageURI);
+      console.log("UNIQ REF STRING", uniqueRefString)
+      const response = await fetch(imageURI);
+      const blob = await response.blob();
+      console.log("blob" ,blob)
+      const newUploadRef = ref(storage, uniqueRefString);
+      console.log("newUploadRef", newUploadRef)
+
+      const snapshot = await uploadBytes(newUploadRef, blob);
+      console.log('Image uploaded');
+
+      // Get the download URL and attach it to the message
+      const imageURL = await getDownloadURL(snapshot.ref);
+      messageToSend.image = imageURL;
+
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      return;  // Optionally handle failure
+    }
     }
 
 
@@ -105,11 +135,16 @@ const Chat = ({ db, route, navigation, isConnected, storage }) => {
 
   const renderBubble = (props) => {
     const { currentMessage } = props;
-
     if (currentMessage.location) {
       return (
         <Bubble
         {...props}
+   
+        renderCustomView={() => (
+          <View style={{ width: 150, height: 150, margin: 5 }}>
+          <MapNoCloseButton location={currentMessage.location} />
+        </View>
+        )}
         wrapperStyle={{
           right: {
             backgroundColor: '#000',
@@ -119,10 +154,7 @@ const Chat = ({ db, route, navigation, isConnected, storage }) => {
           },
         }}
       >
-        <View style={styles.renderBubbleContainer}>
-          <MapNoCloseButton location={currentMessage.location} />
-          <Text style={styles.messageText}>{currentMessage.text}</Text>
-        </View>
+
         </Bubble>
 
       );
@@ -140,11 +172,15 @@ const Chat = ({ db, route, navigation, isConnected, storage }) => {
               backgroundColor: '#FFF',
             },
           }}
+          
         >
-          <View style={styles.renderBubbleContainer}>
-            <ImageNoCloseButton image={currentMessage.image} />
-            <Text style={styles.messageText}>{currentMessage.text}</Text>
-          </View>
+            {/* <ImageNoCloseButton image={currentMessage.image} /> */}
+            renderCustomImage={() => (
+          <View style={{ width: 150, height: 150, margin: 5 }}>
+          <ImageNoCloseButton image={currentMessage.image} />
+        </View>
+        )}
+
         </Bubble>
       );
     }
@@ -166,11 +202,12 @@ const Chat = ({ db, route, navigation, isConnected, storage }) => {
 
 
   const ImageWithCloseButton = ({ image, onClosePic }) => {
+    const imageURI = image.assets[0].uri
     return (
       <View style={styles.imageContainer}>
         {image ? (
           <>
-            <Image source={{ uri: image.uri }} style={{ width: 200, height: 200 }} />
+            <Image source={{uri: imageURI}} style={{ width: 200, height: 200 }} />
             <TouchableOpacity style={styles.closeButton} onPress={onClosePic}>
               <Text style={styles.closeButtonText}>X</Text>
             </TouchableOpacity>
@@ -182,6 +219,8 @@ const Chat = ({ db, route, navigation, isConnected, storage }) => {
     );
   };
   const ImageNoCloseButton = ({ image }) => {
+    const imageURI = image.assets[0].uri
+
     if (!image) {
       return null;
     }
@@ -190,7 +229,7 @@ const Chat = ({ db, route, navigation, isConnected, storage }) => {
       <View style={styles.imageContainer}>
         {image ? (
           <>
-            <Image source={{ uri: image }} style={{ width: 200, height: 200 }} />
+            <Image source={{ uri: imageURI }} style={{ width: 200, height: 200 }} />
           </>
         ) : (
           <Text style={styles.placeholderText}>No Image data</Text>
@@ -292,14 +331,9 @@ const Chat = ({ db, route, navigation, isConnected, storage }) => {
     }
   };
 
-  const renderCustomActions = (props) => {
-    return <CustomActions {...props} />;
-  };
-
-
   useEffect(() => {
 
-    navigation.setOptions({ title: user === '' ? 'ChatApp User' : user });
+    navigation.setOptions({ title: user });
   }, [user]);
 
   return (
@@ -309,17 +343,17 @@ const Chat = ({ db, route, navigation, isConnected, storage }) => {
         keyboardVerticalOffset={Platform.OS === 'ios' ? -200 : 0}
         style={{ flex: 1 }}
       >
-        {/* Adjusted TouchableWithoutFeedback Placement */}
+       
         <View style={styles.giftedChatContainer}>
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <GiftedChat
               messages={messages}
               renderInputToolbar={renderInputToolbar}
               renderActions={(props) => (
-                <CustomActions {...props} setLocation={setLocation} setImage={setImage} storage={storage} userID={userID} />
+                <CustomActions {...props} setLocation={setLocation} setImage={setImage} />
               )}
-              renderBubble={renderBubble}
-              onSend={onSendFunction}
+              renderBubble={renderBubble} 
+              onSend={(messages) => onSendFunction(messages, storage)}
               user={{ _id: userID, name: user }}
             />
           </TouchableWithoutFeedback>
@@ -331,15 +365,13 @@ const Chat = ({ db, route, navigation, isConnected, storage }) => {
 
 
 const styles = StyleSheet.create({
-  image: {
-    flex: 1,
-  },
+
   container: {
     flex: 1,
   },
   giftedChatContainer: {
-    padding: 25, // Add 5px padding to the GiftedChat component
-    flex: 1, // Ensure it takes up the available space
+    padding: 5, 
+    flex: 1, 
   },
   mapContainer: {
     width: '100%',
@@ -350,21 +382,6 @@ const styles = StyleSheet.create({
   },
   map: {
     ...StyleSheet.absoluteFillObject,
-  },
-  renderBubbleContainer: {
-    width: '50%',             // Set the desired width of the bubble
-    borderRadius: 13,         // Rounded corners for aesthetics
-    overflow: 'hidden',       // Prevent overflow of child components
-    marginBottom: 10,         // Space below the bubble
-    backgroundColor: '#FFF',  // Background color for the bubble
-    shadowColor: '#000',      // Shadow color for depth
-    shadowOffset: { width: 0, height: 2 }, // Shadow offset
-    shadowOpacity: 0.1,       // Shadow opacity
-    shadowRadius: 4,          // Shadow blur radius
-    elevation: 2,             // Elevation for Android shadow effect
-    padding: 8,
-    alignContent: "center",
-    justifyContent: "center"  // Padding around the content
   },
   mapInToolbar: {
     marginBottom: 5,
@@ -387,6 +404,9 @@ const styles = StyleSheet.create({
   },
   inputToolbarContainer: {
     backgroundColor: 'white',
+    marginBottom: 20,
+    marginLeft: 15,
+    marginRight:15
   },
   imageContainer: {
     width: '50%',
