@@ -20,15 +20,18 @@ To run the ChatApp, you can use either an Android emulator or a personal mobile 
 
 
 Navigate to the project folder:
+
 cd chatApp
 
 
 Install the dependencies:
 
 npm install
+
 Start the Expo development server:
 
 expo start
+
 Once the server is running, you can:
 
 Scan the QR Code: Open the Expo Go app on your mobile device, and scan the QR code displayed in your terminal or web browser.
