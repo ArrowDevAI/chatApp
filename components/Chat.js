@@ -16,7 +16,7 @@ const Chat = ({ db, route, navigation, isConnected, storage }) => {
   const [location, setLocation] = useState(null);
   const [image, setImage] = useState(null);
 
-  const cacheMessages = async (messagesToCache) => {
+  const cacheMessages = async (messagesToCache) => { //cacheMessages in AsyncStorage must store as string
     try {
       await AsyncStorage.setItem('messages', JSON.stringify(messagesToCache))
     } catch (error) {
@@ -24,7 +24,7 @@ const Chat = ({ db, route, navigation, isConnected, storage }) => {
     }
 
   };
-  const loadCachedMessages = async () => {
+  const loadCachedMessages = async () => { //function to be run if Firestore connection doesn't exist. Reqquires parsing
     const cachedMessages = await AsyncStorage.getItem('messages');
     if (cachedMessages) { setMessages(JSON.parse(cachedMessages)) }
     else {
@@ -72,8 +72,7 @@ const Chat = ({ db, route, navigation, isConnected, storage }) => {
     };
   }, [isConnected]);
 
-  const onSendFunction = async (messagesToSend, storage) => {
-    console.log("Storage", storage)
+  const onSendFunction = async (messagesToSend, storage) => { //image is set in CustomActions pickImage or takePhoto components. Loaded and retrived from storage here and attached to message.
     const messageToSend = {
       ...messagesToSend[0],
       createdAt: new Date(),
@@ -87,9 +86,6 @@ const Chat = ({ db, route, navigation, isConnected, storage }) => {
     }
 
     if (image) {
-
-      console.log("IMAGE IN ONSEND", image)
-
       const generateReference = (uri) => {
         const timeStamp = (new Date()).getTime();
         const imageName = uri.split("/")[uri.split("/").length - 1];
@@ -196,7 +192,7 @@ const Chat = ({ db, route, navigation, isConnected, storage }) => {
   };
 
 
-  const ImageWithCloseButton = ({ image, onClosePic }) => {
+  const ImageWithCloseButton = ({ image, onClosePic }) => { //used to temoorarily render image in text input toolbar
     const imageURI = image.assets[0].uri
     return (
       <View style={styles.imageContainer}>
@@ -232,7 +228,7 @@ const Chat = ({ db, route, navigation, isConnected, storage }) => {
       </View>
     );
   };
-  const MapWithCloseButton = ({ location, onCloseMap }) => {
+  const MapWithCloseButton = ({ location, onCloseMap }) => {//used to temoorarily render map in text input toolbar
     return (
       <View style={styles.mapContainer}>
         {location ? (
@@ -291,7 +287,7 @@ const Chat = ({ db, route, navigation, isConnected, storage }) => {
     setImage(null)
   }
 
-  const CustomInputToolbar = (props) => {
+  const CustomInputToolbar = (props) => { // 
     const { image, location, onClosePic, onCloseMap } = props;
     return (
       <View style={styles.inputToolbarContainer}>
@@ -311,7 +307,7 @@ const Chat = ({ db, route, navigation, isConnected, storage }) => {
     );
   };
 
-  const renderInputToolbar = (props) => {
+  const renderInputToolbar = (props) => { //conditional rendering of toolbar based on connection to database
     if (isConnected) {
       return (
         <CustomInputToolbar {...props} 
