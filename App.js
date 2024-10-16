@@ -8,6 +8,7 @@ import { disableNetwork, enableNetwork, getFirestore } from "firebase/firestore"
 import {FIRESTORE_API_KEY,FIRESTORE_AUTH_DOMAIN,FIRESTORE_PROJECT_ID,FIRESTORE_STORAGE_BUCKET,FIRESTORE_MESSAGING_SENDER_ID,FIRESTORE_APP_ID,FIRESTORE_MEASUREMENT_ID} from '@env';
 import { useNetInfo } from '@react-native-community/netinfo';
 import { useEffect, useState } from 'react';
+import {getStorage} from "firebase/storage";
 
 
 LogBox.ignoreLogs(["AsyncStorage has been extracted from"]);
@@ -23,8 +24,10 @@ const App = () => {
     messagingSenderId: FIRESTORE_MESSAGING_SENDER_ID,
     appId: FIRESTORE_APP_ID,
     measurementId: FIRESTORE_MEASUREMENT_ID
+    
   };
   const app = initializeApp(firebaseConfig)
+  const storage = getStorage(app);
   const db = getFirestore(app)
   const connectionStatus = useNetInfo();  
   useEffect(()=>{
@@ -46,7 +49,7 @@ const App = () => {
 
         <Stack.Screen name="Start" component={Start}  />
         <Stack.Screen name="Chat"options={{ title: 'ChatApp' }}>
-        {props => <Chat isConnected = {connectionStatus.isConnected} db={db} {...props} />}
+        {props => <Chat isConnected = {connectionStatus.isConnected} db={db} storage = {storage}{...props} />}
         </Stack.Screen>
 
       </Stack.Navigator>
