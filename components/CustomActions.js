@@ -54,7 +54,7 @@ const takePhoto = async () => {
   if (permissions?.granted) {
     let result = await ImagePicker.launchCameraAsync();
 
-    if (!result.canceled) setImage(result.assets[0]);
+    if (!result.canceled) setImage(result);
     else setImage(null)
   }
 }
@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
         fontSize: 15,
         backgroundColor: 'transparent',
         textAlign: 'center',
-        marginTop: 1
+        marginTop:.2
       },
 });
 

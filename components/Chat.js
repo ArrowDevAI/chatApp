@@ -98,15 +98,10 @@ const Chat = ({ db, route, navigation, isConnected, storage }) => {
      
     try {
       const imageURI = image.assets[0].uri
-      console.log("IMG URI",imageURI)
       const uniqueRefString = generateReference(imageURI);
-      console.log("UNIQ REF STRING", uniqueRefString)
       const response = await fetch(imageURI);
       const blob = await response.blob();
-      console.log("blob" ,blob)
       const newUploadRef = ref(storage, uniqueRefString);
-      console.log("newUploadRef", newUploadRef)
-
       const snapshot = await uploadBytes(newUploadRef, blob);
       console.log('Image uploaded');
 
@@ -333,7 +328,7 @@ const Chat = ({ db, route, navigation, isConnected, storage }) => {
 
   useEffect(() => {
 
-    navigation.setOptions({ title: user });
+    navigation.setOptions({ title: "ChatApp" });
   }, [user]);
 
   return (
